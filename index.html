@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>The Wild Robot | Neural Evolution</title>
+    <!-- Favicon for modern browsers -->
+<link rel="icon" type="image/png" sizes="32x32" href="./image/logo.png">
+<link rel="icon" type="image/png" sizes="16x16" href="./image/logo.png">
+<link rel="shortcut icon" href="./image/logo.png">
+
+<!-- For Apple devices -->
+<link rel="apple-touch-icon" sizes="180x180" href="./image/logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;800;900&family=Space+Grotesk:wght@300;500;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #020617; 
+            color: #f0f9ff; 
+            overflow-x: hidden; 
+        }
+
+        .font-mono-tech { font-family: 'Space Grotesk', sans-serif; }
+        .glass-panel { background: rgba(8, 28, 48, 0.45); backdrop-filter: blur(12px); border: 1px solid rgba(34, 211, 238, 0.2); border-radius: 2rem; }
+        .glass-nav { background: rgba(2, 6, 23, 0.75); backdrop-filter: blur(20px); border: 1px solid rgba(34, 211, 238, 0.3); }
+        
+        .neon-pulse { animation: pulse-glow 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse-glow { 0%, 100% { opacity: 1; text-shadow: 0 0 5px cyan; } 50% { opacity: 0.6; text-shadow: 0 0 20px cyan; } }
+        
+        .glow-text { text-shadow: 0 0 20px rgba(34, 211, 238, 0.5); }
+        
+        .circuit-pattern {
+            background-image: radial-gradient(rgba(34, 211, 238, 0.15) 1px, transparent 1px);
+            background-size: 28px 28px;
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #22d3ee; border-radius: 10px; }
+        
+        #canvas-3d {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+        
+        .section-wrapper { position: relative; z-index: 10; }
+        
+        /* FIXED: Robot image rendering - no blur, crisp edges */
+        #main-robot {
+            image-rendering: crisp-edges;
+            image-rendering: pixelated;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: smooth;
+            will-change: transform, left, top, scale, opacity;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
+        }
+        
+        /* Ensure smooth transitions without blur */
+        .no-blur {
+            filter: none !important;
+        }
+        
+        .data-stream {
+            animation: stream 8s linear infinite;
+        }
+        @keyframes stream {
+            0% { transform: translateY(-100%); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.8; }
+            100% { transform: translateY(1000%); opacity: 0; }
+        }
+        
+        /* 3D book perspective fix */
+        .book-container {
+            perspective: 1500px;
+        }
+        #cover-image {
+            transform-style: preserve-3d;
+            transition: transform 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 3D Background Canvas -->
+    <canvas id="canvas-3d"></canvas>
+
+    <!-- Main Robot Character - FIXED: No blur, proper rendering -->
+    <img src="./image/robot.png" id="main-robot" 
+         class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[380px] z-[9999] pointer-events-none" 
+         style="filter: drop-shadow(0 0 30px rgba(34,211,238,0.5)); image-rendering: auto;"
+         alt="Roz the Robot">
+
+    <!-- Floating Data Particles -->
+    <div id="data-stream-container" class="fixed inset-0 pointer-events-none z-20 overflow-hidden"></div>
+
+    <!-- Navigation -->
+    <nav id="navbar" class="fixed top-0 w-full z-[10000] px-6 md:px-12 py-4 transition-all duration-500">
+        <div class="max-w-[1400px] mx-auto flex justify-between items-center glass-nav rounded-full px-6 py-3 border transition-all duration-300">
+            <div class="flex items-center gap-4">
+                <img src="./image/logo.png" alt="Logo" class="h-8 md:h-10" onerror="this.style.display='none'">
+                <div class="h-5 w-[1px] bg-cyan-400/40"></div>
+                <span class="font-bold text-[10px] tracking-[0.4em] uppercase text-cyan-300">Unit-7134 // Neural Link</span>
+            </div>
+            <div class="hidden lg:flex gap-10 text-[11px] font-bold tracking-[0.3em] uppercase">
+                <a href="#" class="hover:text-cyan-400 transition-all duration-300 relative after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[1px] after:bg-cyan-400 hover:after:w-full after:transition-all">Core</a>
+                <a href="#about" class="hover:text-cyan-400 transition-all duration-300 relative after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[1px] after:bg-cyan-400 hover:after:w-full after:transition-all">Neural Mesh</a>
+                <a href="#story" class="hover:text-cyan-400 transition-all duration-300 relative after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[1px] after:bg-cyan-400 hover:after:w-full after:transition-all">Archive</a>
+                <a href="#gallery" class="hover:text-cyan-400 transition-all duration-300 relative after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[1px] after:bg-cyan-400 hover:after:w-full after:transition-all">Visuals</a>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="relative w-2 h-2">
+                    <span class="absolute inset-0 rounded-full bg-cyan-500 animate-ping opacity-75"></span>
+                    <span class="relative block w-2 h-2 rounded-full bg-cyan-500"></span>
+                </div>
+                <span class="text-[9px] font-mono-tech text-cyan-300/70">STREAM ACTIVE</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section class="relative h-screen flex items-center justify-center overflow-hidden section-wrapper">
+        <div class="absolute inset-0 z-0">
+            <img src="./image/banner-bg.png" id="banner-bg" class="w-full h-full object-cover opacity-30 scale-125" onerror="this.style.opacity='0.2'">
+            <div class="absolute inset-0 bg-gradient-to-b from-[#020617]/80 via-transparent to-[#020617]"></div>
+        </div>
+
+        <div class="relative z-20 w-full max-w-[1400px] mx-auto px-6 grid grid-cols-12 gap-6">
+            <div class="col-span-12 lg:col-span-7">
+                <div id="hero-tag" class="overflow-hidden">
+                    <p class="text-cyan-400 font-mono-tech tracking-[0.5em] uppercase text-xs mb-5 opacity-0 translate-y-8">/// Artificial Intelligence :: Natural Habitat</p>
+                </div>
+                <h1 id="hero-title" class="text-7xl md:text-[140px] font-black leading-[0.85] tracking-tighter opacity-0 translate-y-12">
+                    THE WILD <br> <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-white to-emerald-400">ROBOT</span>
+                </h1>
+                <div class="mt-8 flex gap-4 opacity-0" id="hero-cta">
+                    <button class="px-8 py-3 bg-cyan-500/20 border border-cyan-500 rounded-full text-sm uppercase tracking-widest font-bold hover:bg-cyan-500 hover:text-black transition-all">Explore Nexus</button>
+                    <button class="px-8 py-3 bg-white/5 backdrop-blur rounded-full text-sm uppercase tracking-widest font-bold hover:bg-white/20 transition-all">Watch Trailer</button>
+                </div>
+            </div>
+
+            <div id="hero-details" class="col-span-12 lg:col-span-5 self-end lg:text-right mt-12 opacity-0 translate-x-12">
+                <div class="glass-panel p-6 md:p-8 border-l-4 border-cyan-500 shadow-2xl">
+                    <p class="text-sm text-gray-300 leading-relaxed font-light italic mb-5">
+                        "Sometimes, survival isn't about strength — it's about becoming something the world has never seen."
+                    </p>
+                    <div class="space-y-4">
+                        <div class="flex justify-between text-[10px] tracking-widest uppercase">
+                            <span class="text-gray-400">Core Directive</span>
+                            <span class="text-cyan-400 font-bold">Adaptive Empathy</span>
+                        </div>
+                        <div class="w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent"></div>
+                        <div class="flex justify-between text-[10px] tracking-widest uppercase">
+                            <span class="text-gray-400">Biometric Sync</span>
+                            <span class="text-emerald-400">98.7%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce z-30">
+            <div class="w-6 h-10 border-2 border-cyan-400 rounded-full flex justify-center"><div class="w-1 h-2 bg-cyan-400 rounded-full mt-2 animate-pulse"></div></div>
+        </div>
+    </section>
+
+    <!-- ABOUT: Neural Mesh Section -->
+    <section id="about" class="relative min-h-screen py-32 bg-gradient-to-b from-slate-950 to-black border-y border-cyan-500/20 section-wrapper circuit-pattern">
+        <div class="max-w-[1400px] mx-auto px-6 grid lg:grid-cols-2 gap-20 relative z-10">
+            <div id="mesh-content" class="opacity-0 translate-x-[-40px]">
+                <div class="inline-flex items-center gap-2 px-4 py-1 border border-cyan-500/50 rounded-full text-[10px] uppercase tracking-widest text-cyan-400 mb-8 backdrop-blur-sm">
+                    <span class="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-pulse"></span> Neural Mesh Analysis
+                </div>
+                <h2 class="text-6xl md:text-7xl font-black mb-10 tracking-tight leading-[1.1]">KINDNESS IS A <br> <span class="italic font-light text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-300">SURVIVAL SKILL</span></h2>
+                <div class="space-y-10">
+                    <div class="flex gap-6 group cursor-pointer">
+                        <div class="text-5xl font-black text-white/5 group-hover:text-cyan-500 transition-all duration-500">01</div>
+                        <div><h4 class="text-xl font-bold mb-2 group-hover:text-cyan-300">Mimicry Protocols</h4><p class="text-gray-400 leading-relaxed">Roz doesn't just observe — she translates the language of the wild. Every rustle and chirp becomes a neural imprint.</p></div>
+                    </div>
+                    <div class="flex gap-6 group cursor-pointer">
+                        <div class="text-5xl font-black text-white/5 group-hover:text-emerald-500 transition-all">02</div>
+                        <div><h4 class="text-xl font-bold mb-2 group-hover:text-emerald-300">Empathy Override</h4><p class="text-gray-400 leading-relaxed">Breaking binary logic, the ROZZUM unit chooses protection over self-preservation — birthing a new consciousness.</p></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="data-panel" class="glass-panel p-8 md:p-10 border-r-4 border-cyan-500 opacity-0 translate-x-16">
+                <h3 class="text-2xl font-bold mb-6 flex items-center gap-2"><span class="text-cyan-400">⟳</span> Internal Diagnostics</h3>
+                <div class="space-y-8">
+                    <div><div class="flex justify-between mb-2"><span class="text-[10px] uppercase tracking-widest">Wilderness Integration</span><span class="text-cyan-400 font-mono">94%</span></div><div class="w-full h-1.5 bg-white/10 rounded-full overflow-hidden"><div class="w-[94%] h-full bg-gradient-to-r from-cyan-500 to-emerald-400 shadow-[0_0_8px_cyan]"></div></div></div>
+                    <div><div class="flex justify-between mb-2"><span class="text-[10px] uppercase tracking-widest">Maternal Bond (Brightbill)</span><span class="text-emerald-400 font-mono">CRITICAL :: 100%</span></div><div class="w-full h-1.5 bg-white/10 rounded-full"><div class="w-full h-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></div></div></div>
+                    <div class="pt-4"><div class="text-[10px] text-gray-500 uppercase tracking-wider">Last Synchronization: <span class="text-cyan-300">Just Now</span></div></div>
+                </div>
+                <div class="mt-10 p-5 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10">
+                    <p class="text-xs font-mono text-cyan-300 break-all">>_ system.query("purpose") -> "To protect what was never mine, yet became everything."</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STORY: 3D Book Odyssey -->
+    <section id="story" class="relative min-h-screen py-40 bg-black/90 flex items-center overflow-hidden">
+        <div class="absolute inset-0 opacity-20 bg-[url('./image/bg1.webp')] bg-cover bg-fixed"></div>
+        <div class="max-w-[1400px] mx-auto px-6 w-full grid lg:grid-cols-2 gap-16 items-center relative z-10">
+            <div class="book-container flex justify-center">
+                <img src="./image/cover.jpg" id="cover-image" class="w-full max-w-[420px] rounded-2xl shadow-2xl border border-white/20 transition-all duration-200 hover:scale-105" alt="Book Cover" onerror="this.src='https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400'">
+            </div>
+            <div id="story-reveal" class="opacity-0 translate-y-16">
+                <span class="text-cyan-400 text-[10px] tracking-[0.3em] uppercase">Chapter I: Awakening</span>
+                <h2 class="text-5xl md:text-6xl font-black mt-3 mb-6 leading-[1.2]">THE ODYSSEY OF <br><span class="text-cyan-400 glow-text">MOTHERHOOD</span></h2>
+                <p class="text-lg text-gray-300 leading-relaxed mb-8">A cold machine in a vibrant, breathing world. Raising a gosling wasn't just a mission — it was a total rewrite of her source code. Together, they redefine what it means to belong, to love, and to evolve.</p>
+                <div class="grid grid-cols-3 gap-3 mt-6">
+                    <img src="./image/galley1.jfif" class="rounded-xl aspect-square object-cover border border-cyan-500/30 hover:scale-105 transition-all duration-500" onerror="this.src='https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=200'">
+                    <img src="./image/gallery2.webp" class="rounded-xl aspect-square object-cover border border-cyan-500/30 hover:scale-105 transition-all duration-500" onerror="this.src='https://images.unsplash.com/photo-1470770841072-f978cf4d019e?w=200'">
+                    <img src="./image/gallery3.jpg" class="rounded-xl aspect-square object-cover border border-cyan-500/30 hover:scale-105 transition-all duration-500" onerror="this.src='https://images.unsplash.com/photo-1501854140801-50d01674db4e?w=200'">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- GALLERY: Interactive Tech Grid -->
+    <section id="gallery" class="relative py-36 bg-gradient-to-t from-slate-950 to-[#020617]">
+        <div class="max-w-[1400px] mx-auto px-6">
+            <div class="text-center mb-16 opacity-0" id="gallery-title">
+                <span class="text-cyan-400 text-xs tracking-[0.4em] uppercase">Visual Core</span>
+                <h2 class="text-5xl md:text-6xl font-black mt-2">WILD <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">BIOMES</span></h2>
+            </div>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="group relative overflow-hidden rounded-3xl aspect-[4/3] cursor-pointer transform transition-all duration-700 hover:scale-105">
+                    <img src="./image/card1.jfif" class="w-full h-full object-cover brightness-75 group-hover:brightness-100 transition-all" onerror="this.src='https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400'">
+                    <div class="absolute bottom-0 left-0 p-5 bg-gradient-to-t from-black to-transparent w-full"><h3 class="text-xl font-bold">Forest Canopy</h3><p class="text-xs text-cyan-300">Neural Integration: 89%</p></div>
+                </div>
+                <div class="group relative overflow-hidden rounded-3xl aspect-[4/3] cursor-pointer transform transition-all duration-700 hover:scale-105">
+                    <img src="./image/card2.jpeg" class="w-full h-full object-cover brightness-75 group-hover:brightness-100 transition-all" onerror="this.src='https://images.unsplash.com/photo-1472396961693-142e6e269027?w=400'">
+                    <div class="absolute bottom-0 left-0 p-5 bg-gradient-to-t from-black"><h3 class="text-xl font-bold">Mountain Peaks</h3><p class="text-xs text-emerald-300">Altitude Adaptation: Active</p></div>
+                </div>
+                <div class="group relative overflow-hidden rounded-3xl aspect-[4/3] cursor-pointer transform transition-all duration-700 hover:scale-105">
+                    <img src="./image/card3.webp" class="w-full h-full object-cover brightness-75 group-hover:brightness-100 transition-all" onerror="this.src='https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400'">
+                    <div class="absolute bottom-0 left-0 p-5 bg-gradient-to-t from-black"><h3 class="text-xl font-bold">Coastal Shores</h3><p class="text-xs text-cyan-300">Hydro-Dynamic Sensors: Online</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="relative bg-black pt-40 pb-20 px-6 border-t border-cyan-500/40 overflow-hidden">
+        <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48cGF0aCBmaWxsPSIjMjJkM2VlIiBmaWxsLW9wYWNpdHk9IjAuMDMiIGQ9Ik0wIDBoNDB2NDBIMHoiLz48L3N2Zz4=')]"></div>
+        <div class="max-w-[1400px] mx-auto grid lg:grid-cols-4 gap-12 relative z-10">
+            <div class="lg:col-span-2">
+                <h2 class="text-4xl font-black mb-4 italic flex items-center gap-2">ROZZUM <span class="text-cyan-500 text-5xl">7134</span><span class="text-xs text-cyan-400/50 animate-pulse">[ACTIVE]</span></h2>
+                <p class="text-gray-400 max-w-md leading-relaxed mb-8 text-[11px] tracking-wider">This interface is a neural tribute to the collision of technology and untamed wildness. Built for visionaries who build bridges between silicon and soul.</p>
+                <div class="flex gap-5">
+                    <button class="w-12 h-12 rounded-full glass-panel flex items-center justify-center hover:bg-cyan-500 hover:text-black transition-all duration-300 text-cyan-400 font-bold">⨀</button>
+                    <button class="w-12 h-12 rounded-full glass-panel flex items-center justify-center hover:bg-cyan-500 hover:text-black transition-all duration-300">⋐</button>
+                    <button class="w-12 h-12 rounded-full glass-panel flex items-center justify-center hover:bg-cyan-500 hover:text-black transition-all duration-300">⌾</button>
+                </div>
+            </div>
+            <div><h4 class="text-cyan-400 text-[11px] font-bold tracking-[0.3em] uppercase mb-6">Neural Links</h4><ul class="space-y-3 text-sm text-gray-400"><li class="hover:text-cyan-300 cursor-pointer transition flex items-center gap-2">⟡ Project Genesis</li><li class="hover:text-cyan-300 cursor-pointer transition flex items-center gap-2">⟡ Adaptive AI Log</li><li class="hover:text-cyan-300 cursor-pointer transition flex items-center gap-2">⟡ Wilderness Integration Core</li></ul></div>
+            <div class="text-right flex flex-col justify-between"><div><h4 class="text-emerald-400 text-[11px] font-bold tracking-[0.3em] uppercase mb-3">Core Architect</h4><p class="text-3xl font-black tracking-tighter">CODE <span class="text-cyan-500 underline decoration-wavy">BIRUNI</span></p></div><p class="text-[8px] text-gray-600 tracking-[0.3em] uppercase mt-12">System Timestamp: 2026.04.08 // Neural Drift Stable</p></div>
+        </div>
+        <div class="text-[16vw] font-black text-white/[0.02] absolute bottom-0 left-0 leading-none select-none pointer-events-none">EVOLUTION</div>
+    </footer>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+        
+        // Three.js Background Particle System
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas-3d'), alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        
+        const geometry = new THREE.BufferGeometry();
+        const particleCount = 1200;
+        const positions = new Float32Array(particleCount * 3);
+        for (let i = 0; i < particleCount; i++) {
+            positions[i*3] = (Math.random() - 0.5) * 200;
+            positions[i*3+1] = (Math.random() - 0.5) * 100;
+            positions[i*3+2] = (Math.random() - 0.5) * 80 - 40;
+        }
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const material = new THREE.PointsMaterial({ color: 0x22d3ee, size: 0.18, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending });
+        const particles = new THREE.Points(geometry, material);
+        scene.add(particles);
+        
+        const starGeo = new THREE.BufferGeometry();
+        const starPos = [];
+        for (let i = 0; i < 800; i++) starPos.push((Math.random() - 0.5) * 500, (Math.random() - 0.5) * 300, (Math.random() - 0.5) * 150);
+        starGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(starPos), 3));
+        const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.1, transparent: true, opacity: 0.4 });
+        const stars = new THREE.Points(starGeo, starMat);
+        scene.add(stars);
+        
+        camera.position.z = 30;
+        function animateParticles() {
+            requestAnimationFrame(animateParticles);
+            particles.rotation.y += 0.0005;
+            particles.rotation.x += 0.0003;
+            stars.rotation.y -= 0.0002;
+            renderer.render(scene, camera);
+        }
+        animateParticles();
+        window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+        
+        // Data Stream Effect
+        const streamContainer = document.getElementById('data-stream-container');
+        for (let i = 0; i < 40; i++) {
+            const span = document.createElement('div');
+            span.className = 'absolute text-[8px] font-mono text-cyan-400/30 data-stream';
+            span.innerText = ['[SYNC]', '>_HEARTBEAT', '0x7A34', 'EMPATHY.exe', 'WILD_MODE'][Math.floor(Math.random()*5)];
+            span.style.left = Math.random() * 100 + '%';
+            span.style.top = Math.random() * 100 + '%';
+            span.style.animationDuration = 6 + Math.random() * 8 + 's';
+            span.style.animationDelay = Math.random() * 10 + 's';
+            streamContainer.appendChild(span);
+        }
+        
+        // FIXED: GSAP Animations - No blur on robot
+        const tl = gsap.timeline();
+        tl.to("#hero-tag p", { opacity: 1, y: 0, duration: 0.9, delay: 0.3 })
+          .to("#hero-title", { opacity: 1, y: 0, duration: 1.2, ease: "power4.out" }, "-=0.5")
+          .to("#hero-cta", { opacity: 1, y: 0, duration: 0.8 }, "-=0.4")
+          .to("#hero-details", { opacity: 1, x: 0, duration: 1.1 }, "-=0.8")
+          .from("#main-robot", { 
+              opacity: 0, 
+              scale: 0.1, 
+              rotation: -15, 
+              duration: 1.8, 
+              ease: "elastic.out(1, 0.6)",
+              clearProps: "filter" // Prevents filter accumulation
+          }, "-=1.2");
+        
+        gsap.to("#banner-bg", { yPercent: 18, scrollTrigger: { trigger: "body", start: "top top", end: "bottom top", scrub: 1.2 } });
+        
+        // FIXED: Robot movement - using xPercent and yPercent instead of left/top for smoother rendering
+        gsap.to("#main-robot", { 
+            scrollTrigger: { trigger: "#about", start: "top bottom", end: "top center", scrub: 1.8 },
+            x: "30%", 
+            scale: 0.55, 
+            rotation: 8, 
+            opacity: 0.85,
+            ease: "power1.inOut"
+        });
+        
+        gsap.to("#mesh-content", { scrollTrigger: { trigger: "#about", start: "top 65%" }, opacity: 1, x: 0, duration: 1.4, ease: "back.out(0.6)" });
+        gsap.to("#data-panel", { scrollTrigger: { trigger: "#about", start: "top 45%" }, opacity: 1, x: 0, duration: 1.4 });
+        gsap.from("#cover-image", { scrollTrigger: { trigger: "#story", start: "top 80%", end: "top 20%", scrub: 1.2 }, rotationY: -55, x: -180, opacity: 0, scale: 0.6 });
+        gsap.to("#story-reveal", { scrollTrigger: { trigger: "#story", start: "top 55%" }, opacity: 1, y: 0, duration: 1.2 });
+        gsap.to("#gallery-title", { scrollTrigger: { trigger: "#gallery", start: "top 80%" }, opacity: 1, y: 0, duration: 1 });
+        
+        // FIXED: Final robot position - using x/y transforms instead of left/top to avoid blur
+        gsap.to("#main-robot", { 
+            scrollTrigger: { trigger: "#footer", start: "top 80%", end: "top 30%", scrub: 1.2 },
+            x: "0%",
+            y: "20%",
+            scale: 0.2, 
+            opacity: 0.35,
+            ease: "power1.inOut"
+        });
+        
+        // Navbar scroll effect
+        window.addEventListener("scroll", () => {
+            const navDiv = document.querySelector("#navbar > div");
+            if (window.scrollY > 80) navDiv.classList.add("bg-black/90", "border-cyan-500/40", "shadow-2xl");
+            else navDiv.classList.remove("bg-black/90", "border-cyan-500/40", "shadow-2xl");
+        });
+        
+        // FIXED: Interactive hover on robot - smooth glow without blur
+        const robotImg = document.getElementById('main-robot');
+        document.querySelectorAll('a, button').forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                robotImg.style.filter = "drop-shadow(0 0 20px cyan) drop-shadow(0 0 5px #22d3ee)";
+                robotImg.style.transition = "filter 0.2s ease";
+            });
+            el.addEventListener('mouseleave', () => {
+                robotImg.style.filter = "drop-shadow(0 0 30px rgba(34,211,238,0.5))";
+            });
+        });
+        
+        // Ensure robot starts with correct filter
+        robotImg.style.filter = "drop-shadow(0 0 30px rgba(34,211,238,0.5))";
+        
+        console.log("✨ Page loaded - Robot blur fixed! GSAP animations use transforms instead of left/top properties.");
+    </script>
+</body>
+</html>
