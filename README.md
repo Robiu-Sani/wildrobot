@@ -40,26 +40,33 @@
 ---
 
 ## 📁 Project Structure
+
+```text
 the-wild-robot/
 │
-├── index.html # Main HTML file
-├── README.md # Project documentation
-├── 1.png # Banner image for README
+├── index.html          # Main HTML file
+├── README.md            # Project documentation
+├── 1.png               # Banner image for README
 │
-├── image/ # Image assets directory
-│ ├── robot.png # Main ROZZUM character
-│ ├── logo.png # Website logo & favicon
-│ ├── banner-bg.png # Hero section background
-│ ├── cover.jpg # Book cover image
-│ ├── bg1.webp # Story section background
-│ ├── galley1.jfif # Gallery image 1
-│ ├── gallery2.webp # Gallery image 2
-│ ├── gallery3.jpg # Gallery image 3
-│ ├── card1.jfif # Biome card 1
-│ ├── card2.jpeg # Biome card 2
-│ └── card3.webp # Biome card 3
+├── image/              # Image assets directory
+│   ├── robot.png       # Main ROZZUM character
+│   ├── logo.png        # Website logo & favicon
+│   ├── banner-bg.png   # Hero section background
+│   ├── cover.jpg       # Book cover image
+│   ├── bg1.webp        # Story section background
+│   ├── galley1.jfif    # Gallery image 1
+│   ├── gallery2.webp   # Gallery image 2
+│   ├── gallery3.jpg    # Gallery image 3
+│   ├── card1.jfif      # Biome card 1
+│   ├── card2.jpeg      # Biome card 2
+│   └── card3.webp      # Biome card 3
 │
-└── assets/ # (Optional) Additional assets
+└── assets/             # Core styling and logic
+    ├── css/
+    │   └── style.css   # Main stylesheet
+    ├── js/
+    │   └── script.js   # Interactivity & animations
+    └── fonts/          # Custom typography (if any)
 
 
 ---
